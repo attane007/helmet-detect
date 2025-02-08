@@ -3,13 +3,32 @@ import torch
 from datetime import datetime
 import os
 import time
+import paho.mqtt.client as mqtt
+import warnings
+
+# ตั้งค่า MQTT Broker และ ThingSpeak
+MQTT_BROKER = "mqtt3.thingspeak.com"  # หรือ "broker.hivemq.com"
+MQTT_PORT = 8883
+WRITE_API_KEY = "ABCDEF1234567890" # ใช้สำหรับ ThingSpeak
+CHANNEL_ID = "xxxx" # ใช้สำหรับ ThingSpeak
+MQTT_USERNAME = "xxxxx"
+MQTT_PASSWORD = "xxxxx"
+MQTT_TOPIC = f"channels/{CHANNEL_ID}/publish/{WRITE_API_KEY}"
+
+# ฟังก์ชันส่ง MQTT Message
+def send_mqtt_message(message):
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+    client.tls_set()  # ใช้สำหรับ HiveMQ Cloud ที่ต้องการ TLS
+    client.connect(MQTT_BROKER, MQTT_PORT, 60)
+    message = f"field1={message}"
+    client.publish(MQTT_TOPIC, message)
+    client.disconnect()
+
+warnings.simplefilter("ignore", category=FutureWarning)
 
 # Load YOLO model
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
-
-# Create directory for storing images
-os.makedirs("storage", exist_ok=True)
-os.makedirs("storage/face_db", exist_ok=True)  # Directory for face images
 
 # Load Haar Cascade for face detection
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -41,8 +60,11 @@ while True:
     for _, row in detections.iterrows():
         xmin, ymin, xmax, ymax, name = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax']), row['name']
 
-        if name: 
+        if name and (time.time() - last_save_time > 1):  # ส่ง MQTT ทุกๆ 1 วินาที
             print(name)
+            send_mqtt_message(1)
+            last_save_time = time.time()  # อัปเดตเวลาส่งล่าสุด
+
         color = (0, 0, 255)
         # Draw bounding boxes for detected objects
         cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), color, 2)
