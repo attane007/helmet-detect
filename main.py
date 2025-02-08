@@ -43,7 +43,7 @@ while True:
 
         if name: 
             print(name)
-
+        color = (0, 0, 255)
         # Draw bounding boxes for detected objects
         cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), color, 2)
         cv2.putText(frame, name, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
