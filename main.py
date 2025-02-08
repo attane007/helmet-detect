@@ -8,18 +8,18 @@ import warnings
 
 # ตั้งค่า MQTT Broker และ ThingSpeak
 MQTT_BROKER = "mqtt3.thingspeak.com"  # หรือ "broker.hivemq.com"
-MQTT_PORT = 8883
-WRITE_API_KEY = "ABCDEF1234567890" # ใช้สำหรับ ThingSpeak
-CHANNEL_ID = "xxxx" # ใช้สำหรับ ThingSpeak
-MQTT_USERNAME = "xxxxx"
-MQTT_PASSWORD = "xxxxx"
-MQTT_TOPIC = f"channels/{CHANNEL_ID}/publish/{WRITE_API_KEY}"
+MQTT_PORT = 1883
+CHANNEL_ID = "2833593" # ใช้สำหรับ ThingSpeak
+
+MQTT_CLIENT_ID = "EiotCQQqMxYwJxAcNT0EHDA"
+MQTT_USERNAME = "EiotCQQqMxYwJxAcNT0EHDA"
+MQTT_PASSWORD = "gT3tPvYH7A1kIE+X8vPocYJo"
+MQTT_TOPIC = f"channels/{CHANNEL_ID}/publish"
 
 # ฟังก์ชันส่ง MQTT Message
 def send_mqtt_message(message):
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2,client_id=MQTT_CLIENT_ID)
     client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
-    client.tls_set()  # ใช้สำหรับ HiveMQ Cloud ที่ต้องการ TLS
     client.connect(MQTT_BROKER, MQTT_PORT, 60)
     message = f"field1={message}"
     client.publish(MQTT_TOPIC, message)
@@ -60,9 +60,9 @@ while True:
     for _, row in detections.iterrows():
         xmin, ymin, xmax, ymax, name = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax']), row['name']
 
-        if name and (time.time() - last_save_time > 1):  # ส่ง MQTT ทุกๆ 1 วินาที
+        if name and (time.time() - last_save_time > 2):  # ส่ง MQTT ทุกๆ 1 วินาที
             print(name)
-            send_mqtt_message(1)
+            send_mqtt_message(1) # ส่งข้อความ 1 ไปที่ ThingSpeak
             last_save_time = time.time()  # อัปเดตเวลาส่งล่าสุด
 
         color = (0, 0, 255)
