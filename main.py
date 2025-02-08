@@ -41,29 +41,8 @@ while True:
     for _, row in detections.iterrows():
         xmin, ymin, xmax, ymax, name = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax']), row['name']
 
-        if name == 'helmet':  # Wearing helmet
-            color = (0, 255, 0)  # Green
-        elif name == 'person':
-            color = (0, 0, 255)  # Red
-            
-            # Detect face within the bounding box using Haar Cascade
-            face_frame = frame[ymin:ymax, xmin:xmax]
-            gray = cv2.cvtColor(face_frame, cv2.COLOR_BGR2GRAY)
-            faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-
-            for (fx, fy, fw, fh) in faces:
-                current_time = time.time()
-                if current_time - last_save_time >= 1:
-                    # Save face if it has not been detected before
-                    face_location = (xmin+fx, ymin+fy, fw, fh)
-                    face_path = save_face(frame, face_location)
-                    print(f"New face saved: {face_path}")
-
-                    # Save full frame image
-                    full_frame_filename = f"storage/no_helmet_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
-                    cv2.imwrite(full_frame_filename, frame)
-                    print(f"Full frame saved: {full_frame_filename}")
-                    last_save_time = current_time
+        if name: 
+            print(name)
 
         # Draw bounding boxes for detected objects
         cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), color, 2)
